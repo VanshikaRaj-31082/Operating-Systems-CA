@@ -1,0 +1,29 @@
+```mermaid
+graph TD
+    %% Resource Allocation Graph (RAG) for Two-Lock Deadlock
+    %% Nodes: Circles for Threads/Processes, Rectangles with dots for Resources
+
+    subgraph Threads ["Active Threads (Processes)"]
+        T1(("Thread 1 (T1)"))
+        T2(("Thread 2 (T2)"))
+    end
+
+    subgraph Resources ["System Resources (Mutex Locks)"]
+        LA["Lock A [ 1 Unit ]"]
+        LB["Lock B [ 1 Unit ]"]
+    end
+
+    %% Assignment Edges (Resource -> Thread)
+    LA -->|"Allocated To (Holds)"| T1
+    LB -->|"Allocated To (Holds)"| T2
+
+    %% Request Edges (Thread -> Resource)
+    T1 -.->|"Requests / Blocked On"| LB
+    T2 -.->|"Requests / Blocked On"| LA
+
+    %% Styling
+    style T1 fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    style T2 fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    style LA fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+    style LB fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+```

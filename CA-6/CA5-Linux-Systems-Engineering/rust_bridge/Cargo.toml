@@ -1,0 +1,8 @@
+[package]
+name = "ca5_rust_bridge"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vanshika Raj <25BTRCL278@jainuniversity.ac.in>"]
+description = "CA5 to CA6 Rust Systems Bridge: Synchronization, Futex, and Micro-OS Kernel Primitives"
+
+[dependencies]

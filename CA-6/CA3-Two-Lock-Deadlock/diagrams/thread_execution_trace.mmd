@@ -1,0 +1,53 @@
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Main as Parent Process (Watchdog)
+    participant T1 as Thread 1
+    participant B as Barrier (Capacity: 2)
+    participant T2 as Thread 2
+    participant LA as Lock A (Mutex)
+    participant LB as Lock B (Mutex)
+
+    Main->>T1: Spawn & Start
+    Main->>T2: Spawn & Start
+    Note over Main: Watchdog timer set to 3.0 seconds
+
+    rect rgb(240, 248, 255)
+        Note over T1, LA: Step 1: Lock A Acquisition
+        T1->>LA: lock_a.acquire()
+        LA-->>T1: Granted (Lock A held by T1)
+    end
+
+    rect rgb(255, 245, 238)
+        Note over T2, LB: Step 2: Lock B Acquisition
+        T2->>LB: lock_b.acquire()
+        LB-->>T2: Granted (Lock B held by T2)
+    end
+
+    rect rgb(245, 245, 245)
+        Note over T1, T2: Step 3: Deterministic Synchronization
+        T1->>B: barrier.wait() (Arrived 1/2)
+        T2->>B: barrier.wait() (Arrived 2/2)
+        B-->>T1: Barrier Tripped / Released
+        B-->>T2: Barrier Tripped / Released
+    end
+
+    rect rgb(255, 235, 238)
+        Note over T1, LB: Step 4: Circular Contention
+        T1->>LB: lock_b.acquire()
+        Note over T1, LB: BLOCKED! (Lock B held by T2)
+        T2->>LA: lock_a.acquire()
+        Note over T2, LA: BLOCKED! (Lock A held by T1)
+    end
+
+    Note over T1, T2: Indefinite Deadlock (Both threads asleep in wait-queue)
+
+    rect rgb(255, 255, 224)
+        Note over Main: Step 5: Watchdog Expiration
+        Main->>Main: process.join(timeout=3) expires
+        Main->>Main: process.is_alive() == True
+        Main->>T1: process.terminate() [SIGTERM]
+        Main->>T2: Terminated
+        Note over Main: Prints "DEADLOCK DETECTED!"
+    end
+```

@@ -1,0 +1,473 @@
+{
+  "started_at_utc": "2026-11-15T14:29:11Z",
+  "ended_at_utc": "2026-11-15T14:29:14Z",
+  "total_configurations_planned": 800,
+  "completed_configurations": 750,
+  "unsupported_configurations": 50,
+  "failed_configurations": 0,
+  "total_detector_executions": 22500,
+  "environment": {
+    "python_version": "3.14.7",
+    "python_implementation": "CPython",
+    "os_name": "Windows",
+    "os_release": "11",
+    "os_version": "10.0.26300",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_count": 16,
+    "timestamp_utc": "2026-11-15T14:29:11.167968+00:00"
+  },
+  "unsupported_details": [
+    {
+      "config_id": "wait_for_graph_mixed_n5_m3_s101",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n5_m3_s202",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n5_m3_s303",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n5_m3_s404",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n5_m3_s505",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n10_m3_s101",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n10_m3_s202",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n10_m3_s303",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n10_m3_s404",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n10_m3_s505",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n20_m3_s101",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n20_m3_s202",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n20_m3_s303",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n20_m3_s404",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n20_m3_s505",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n50_m3_s101",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n50_m3_s202",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n50_m3_s303",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n50_m3_s404",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n50_m3_s505",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n100_m3_s101",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n100_m3_s202",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n100_m3_s303",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n100_m3_s404",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "wait_for_graph_mixed_n100_m3_s505",
+      "resource_model": "single_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n5_m3_s101",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n5_m3_s202",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n5_m3_s303",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n5_m3_s404",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n5_m3_s505",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n10_m3_s101",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n10_m3_s202",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n10_m3_s303",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n10_m3_s404",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n10_m3_s505",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 10,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n20_m3_s101",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n20_m3_s202",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n20_m3_s303",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n20_m3_s404",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n20_m3_s505",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 20,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n50_m3_s101",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n50_m3_s202",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n50_m3_s303",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n50_m3_s404",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n50_m3_s505",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 50,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n100_m3_s101",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 101,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n100_m3_s202",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 202,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n100_m3_s303",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 303,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n100_m3_s404",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 404,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    },
+    {
+      "config_id": "multi_instance_mixed_n100_m3_s505",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 100,
+      "m": 3,
+      "seed": 505,
+      "reason": "m (3) must be >= 4 to fit distinct resource allocations"
+    }
+  ],
+  "failure_details": []
+}

@@ -1,0 +1,4 @@
+scenario,repetition_count,deadlock_rate_pct,mean_execution_time_s,std_execution_time_s,mean_ops_completed,mean_retries_count
+circular_deadlock_unmitigated,5,100.0,3.092994,0.000508,0.0,0.0
+lock_hierarchy_avoidance,5,0.0,0.001611,0.000304,200.0,0.0
+trylock_exponential_backoff_recovery,5,0.0,0.001084,0.000406,200.0,0.0

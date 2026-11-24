@@ -1,0 +1,51 @@
+=======================================================================
+  PHASE 2: PREVENTED SIMULATION TRACE (GLOBAL RESOURCE ORDERING)
+=======================================================================
+
+[ 0.000s] === STARTING PREVENTED FOUR-RESOURCE SIMULATION (GLOBAL RESOURCE ORDERING) ===
+[ 0.002s] [P1] Requesting [R1: Printer] (Rank 1)...
+[ 0.002s] [P1] Acquired [R1: Printer] (Rank 1).
+[ 0.002s] [P1] Requesting [R2: Scanner] (Rank 2)...
+[ 0.002s] [P1] Acquired [R2: Scanner] (Rank 2). All needed resources secured!
+[ 0.002s] [P1] Processing transaction with ['R1', 'R2']...
+[ 0.002s] [P2] Requesting [R2: Scanner] (Rank 2)...
+[ 0.003s] [P3] Requesting [R3: Database Lock] (Rank 3)...
+[ 0.003s] [P3] Acquired [R3: Database Lock] (Rank 3).
+[ 0.003s] [P3] Requesting [R4: Network Resource] (Rank 4)...
+[ 0.003s] [P3] Acquired [R4: Network Resource] (Rank 4). All needed resources secured!
+[ 0.003s] [P3] Processing transaction with ['R3', 'R4']...
+[ 0.003s] [P4: Remote Report Dispatcher] Protocol re-ordered requests: Naive ('R4', 'R1') -> Hierarchical ('R1', 'R4') (Rank 1 < Rank 4)
+[ 0.003s] [P4] Requesting [R1: Printer] (Rank 1)...
+[ 0.052s] [P1] Released all resources. Completed in 0.051s.
+[ 0.052s] [P2] Acquired [R2: Scanner] (Rank 2).
+[ 0.052s] [P2] Requesting [R3: Database Lock] (Rank 3)...
+[ 0.052s] [P4] Acquired [R1: Printer] (Rank 1).
+[ 0.053s] [P4] Requesting [R4: Network Resource] (Rank 4)...
+[ 0.053s] [P3] Released all resources. Completed in 0.050s.
+[ 0.053s] [P2] Acquired [R3: Database Lock] (Rank 3). All needed resources secured!
+[ 0.053s] [P2] Processing transaction with ['R2', 'R3']...
+[ 0.053s] [P4] Acquired [R4: Network Resource] (Rank 4). All needed resources secured!
+[ 0.053s] [P4] Processing transaction with ['R1', 'R4']...
+[ 0.104s] [P4] Released all resources. Completed in 0.101s.
+[ 0.104s] [P2] Released all resources. Completed in 0.102s.
+[ 0.104s] === PREVENTED SIMULATION COMPLETED: 4/4 tasks finished in 0.104s (Cycles: 0) ===
+
++-----------------------------------------------------------------------+
+|                RESOURCE ALLOCATION GRAPH (RAG) SNAPSHOT               |
++-----------------------------------------------------------------------+
+| Node        | Outgoing Edges (Dependency Direction)                  |
++-------------+---------------------------------------------------------+
+| Process  (P1) | (none - idle)                                           |
+| Process  (P2) | (none - idle)                                           |
+| Process  (P3) | (none - idle)                                           |
+| Process  (P4) | (none - idle)                                           |
+| Resource [R1] | (none - idle)                                           |
+| Resource [R2] | (none - idle)                                           |
+| Resource [R3] | (none - idle)                                           |
+| Resource [R4] | (none - idle)                                           |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+|                    CYCLE DETECTION: NO DEADLOCK DETECTED             |
+|               The Resource Allocation Graph is Acyclic (DAG)          |
++-----------------------------------------------------------------------+

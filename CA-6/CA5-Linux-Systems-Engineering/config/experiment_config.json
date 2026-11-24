@@ -1,0 +1,51 @@
+{
+  "project": "CA5-Linux-Systems-Engineering",
+  "challenge_id": "L38",
+  "challenge_title": "Concurrency Failure & Lock Contention Investigation with Real Linux /proc Instrumentation",
+  "integrated_challenges": [
+    {"id": "L10", "title": "Race Condition and Correction"},
+    {"id": "L16", "title": "Lock Contention Investigation"},
+    {"id": "L17", "title": "Deadlock Demonstration and Recovery"},
+    {"id": "L25", "title": "Build a /proc Process Explorer"}
+  ],
+  "optional_extension": {
+    "id": "L41",
+    "title": "Rust Synchronization and CA6 Micro-OS Bridge"
+  },
+  "environment": {
+    "target_os": "Linux (Ubuntu on WSL2 / Bare-Metal)",
+    "python_version": ">=3.10"
+  },
+  "workload_parameters": {
+    "race_condition": {
+      "thread_counts": [2, 4, 8, 16],
+      "increments_per_thread": 10000,
+      "repetitions": 5,
+      "modes": ["unsynchronized", "mutex_synchronized"]
+    },
+    "lock_contention": {
+      "thread_counts": [1, 2, 4, 8, 16],
+      "total_operations": 500000,
+      "work_chunk_sizes": [1, 10, 50],
+      "repetitions": 5,
+      "strategies": ["coarse_mutex", "chunked_mutex", "partitioned_striped"]
+    },
+    "deadlock_investigation": {
+      "repetitions": 5,
+      "watchdog_timeout_sec": 3.0,
+      "backoff_max_delay_ms": 20.0,
+      "scenarios": [
+        "circular_deadlock_unmitigated",
+        "lock_hierarchy_avoidance",
+        "trylock_exponential_backoff_recovery"
+      ]
+    }
+  },
+  "random_seeds": [101, 202, 303, 404, 505],
+  "output_paths": {
+    "raw_dir": "results/raw",
+    "processed_dir": "results/processed",
+    "logs_dir": "results/logs",
+    "figures_dir": "results/figures"
+  }
+}

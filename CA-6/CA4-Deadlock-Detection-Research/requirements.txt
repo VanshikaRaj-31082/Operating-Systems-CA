@@ -1,0 +1,8 @@
+# CA4 - Research Mini-Project R13: Deadlock Detection under Different Resource Patterns
+# Python Version Requirement: Python >= 3.10 (Tested on Python 3.14.7)
+
+# Core models, detection algorithms, and test suites rely strictly
+# on the Python Standard Library (typing, dataclasses, collections, unittest).
+
+# Required for empirical benchmark plotting in subsequent phases:
+matplotlib>=3.8.0

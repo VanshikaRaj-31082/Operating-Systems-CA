@@ -1,0 +1,19 @@
+```mermaid
+graph LR
+    %% Wait-For Graph (WFG) for Two-Lock Deadlock
+    %% Nodes: Threads only
+    %% Directed Edge T_i -> T_j indicates T_i is waiting for a resource held by T_j
+
+    T1(("Thread 1 (T1)<br><i>Holds Lock A</i>"))
+    T2(("Thread 2 (T2)<br><i>Holds Lock B</i>"))
+
+    T1 -->|"Waits for Lock B held by"| T2
+    T2 -->|"Waits for Lock A held by"| T1
+
+    %% Circular dependency highlight
+    linkStyle 0 stroke:#d32f2f,stroke-width:3px;
+    linkStyle 1 stroke:#d32f2f,stroke-width:3px;
+
+    style T1 fill:#ffebee,stroke:#c62828,stroke-width:2px;
+    style T2 fill:#ffebee,stroke:#c62828,stroke-width:2px;
+```

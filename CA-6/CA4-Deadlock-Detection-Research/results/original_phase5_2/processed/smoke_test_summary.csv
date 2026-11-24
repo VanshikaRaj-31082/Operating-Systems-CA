@@ -1,0 +1,5 @@
+trial_id,algorithm,resource_model,pattern,n,m,seed,warmup_runs,repetitions,mean_us,median_us,min_us,max_us,stddev_us,is_deadlocked,deadlocked_count
+wait_for_graph_circular_n4_m4_s42,wait_for_graph,single_instance,circular,4,4,42,2,5,28.36,25.9001,25.5001,38.0999,5.4605,True,3
+wait_for_graph_acyclic_n4_m4_s42,wait_for_graph,single_instance,acyclic,4,4,42,2,5,25.4999,24.1001,23.4998,30.0999,2.7313,False,0
+multi_instance_circular_n5_m4_s42,multi_instance,multi_instance,circular,5,4,42,2,5,23.64,23.2998,22.9999,25.3001,0.9397,True,3
+multi_instance_mixed_n5_m5_s42,multi_instance,multi_instance,mixed,5,5,42,2,5,28.6999,28.8999,27.8999,29.2999,0.5831,True,3

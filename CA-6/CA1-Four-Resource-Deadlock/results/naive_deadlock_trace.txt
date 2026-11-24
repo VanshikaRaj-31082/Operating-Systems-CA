@@ -1,0 +1,44 @@
+=======================================================================
+  PHASE 1: NAIVE SIMULATION TRACE (UNCONSTRAINED CIRCULAR WAIT)
+=======================================================================
+
+[ 0.000s] [P1: Audit Logger] Requesting first resource [R1: Printer] (Rank 1)...
+[ 0.000s] [P1] Acquired [R1: Printer]. Now holding: ['R1']
+[ 0.000s] [P1] Waiting at synchronization barrier for other processes...
+[ 0.000s] [P2: Document Ingestion] Requesting first resource [R2: Scanner] (Rank 2)...
+[ 0.000s] [P2] Acquired [R2: Scanner]. Now holding: ['R2']
+[ 0.000s] [P2] Waiting at synchronization barrier for other processes...
+[ 0.000s] [P3: Ledger Sync] Requesting first resource [R3: Database Lock] (Rank 3)...
+[ 0.000s] [P3] Acquired [R3: Database Lock]. Now holding: ['R3']
+[ 0.000s] [P3] Waiting at synchronization barrier for other processes...
+[ 0.000s] [P4: Remote Report Dispatcher] Requesting first resource [R4: Network Resource] (Rank 4)...
+[ 0.000s] [P4] Acquired [R4: Network Resource]. Now holding: ['R4']
+[ 0.000s] [P4] Waiting at synchronization barrier for other processes...
+[ 0.000s] [P4] Requesting second resource [R1: Printer] (Rank 1) ... WAITING (Held by P1)
+[ 0.000s] [P2] Requesting second resource [R3: Database Lock] (Rank 3) ... WAITING (Held by P3)
+[ 0.000s] [P1] Requesting second resource [R2: Scanner] (Rank 2) ... WAITING (Held by P2)
+[ 0.000s] [P3] Requesting second resource [R4: Network Resource] (Rank 4) ... WAITING (Held by P4)
+
++-----------------------------------------------------------------------+
+|                RESOURCE ALLOCATION GRAPH (RAG) SNAPSHOT               |
++-----------------------------------------------------------------------+
+| Node        | Outgoing Edges (Dependency Direction)                  |
++-------------+---------------------------------------------------------+
+| Process  (P1) | Requests [R2]                                           |
+| Process  (P2) | Requests [R3]                                           |
+| Process  (P3) | Requests [R4]                                           |
+| Process  (P4) | Requests [R1]                                           |
+| Resource [R1] | Held by (P1)                                            |
+| Resource [R2] | Held by (P2)                                            |
+| Resource [R3] | Held by (P3)                                            |
+| Resource [R4] | Held by (P4)                                            |
++-----------------------------------------------------------------------+
+
++-----------------------------------------------------------------------+
+|               DEADLOCK DETECTED: CIRCULAR WAIT IN RAG                 |
++-----------------------------------------------------------------------+
+| Cycle: (P1) -> [R2] -> (P2) -> [R3] -> (P3) -> [R4] -> (P4) -> [R1] -> (P1) |
+|                                                                       |
+| Involved Processes: P1, P2, P3, P4                                    |
+| Involved Resources: R2, R3, R4, R1                                    |
++-----------------------------------------------------------------------+

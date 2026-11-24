@@ -1,0 +1,15 @@
+{
+  "execution_status": "completed_successfully",
+  "started_at_utc": "2026-11-18T16:33:10.840245+00:00",
+  "ended_at_utc": "2026-11-18T16:38:00.231195+00:00",
+  "total_race_trials": 40,
+  "total_contention_trials": 75,
+  "total_deadlock_trials": 15,
+  "total_experimental_runs": 130,
+  "environment_summary": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2",
+    "logical_cpus": 16,
+    "python": "3.14.4"
+  }
+}

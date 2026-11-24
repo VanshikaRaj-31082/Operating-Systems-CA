@@ -1,0 +1,715 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% --- Hyperlink setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=green!50!black,
+    urlcolor=blue!80!black
+}
+
+% --- Code listings setup ---
+\lstset{
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{red!70!black}
+}
+
+% ==============================================================================
+% DOCUMENT BEGIN
+% ==============================================================================
+\begin{document}
+
+% --- Title Page ---
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    
+    {\Huge\bfseries Continuous Assessment 4 (CA4) \par}
+    \vspace{0.4cm}
+    {\LARGE\bfseries Research Mini-Project Topic R13 \par}
+    \vspace{1.0cm}
+    
+    \rule{\linewidth}{1.2pt} \\[0.4cm]
+    {\huge\bfseries Performance Evaluation of Deadlock Detection Algorithms Under Different Resource Allocation Patterns \par}
+    \rule{\linewidth}{1.2pt}
+    
+    \vspace{2.0cm}
+    
+    {\Large\textbf{Author:} [Student Name / ID Placeholder] \par}
+    \vspace{0.3cm}
+    {\large\textbf{Institution:} Department of Computer Science and Engineering \par}
+    \vspace{0.2cm}
+    {\large\textbf{Course:} Operating Systems (CS-XXX) \par}
+    \vspace{0.2cm}
+    {\large\textbf{Academic Term:} Autumn 2026 \par}
+    \vspace{0.2cm}
+    {\large\textbf{Date:} November 15, 2026 \par}
+    
+    \vfill
+    
+    \begin{minipage}{0.9\textwidth}
+        \small\textbf{Project Repository Artifacts:}
+        \begin{itemize}\setlength{\itemsep}{0pt}
+            \item Platform Environment: Windows 11 (build 10.0.26300, AMD64), CPython 3.14.7 (64-bit)
+            \item Verification: 59 unit tests passing across core models, detectors, and benchmark framework
+            \item Empirical Scope: 22,500 measured detector runs across 750 factorial configurations
+        \end{itemize}
+    \end{minipage}
+    
+    \vspace{1.0cm}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% 2. ABSTRACT
+% ==============================================================================
+\begin{abstract}
+Deadlock detection is a foundational problem in operating systems, distributed database management, and concurrent systems design. While theoretical time complexities for classic detection algorithms are well-established, empirical execution latency in production runtimes depends heavily on runtime resource allocation topologies, early-termination conditions, vector dimensionality, and underlying resource capacity semantics. This research paper presents an empirical and theoretical performance evaluation of two canonical deadlock detection paradigms: (1) Single-Instance Wait-For Graph (WFG) analysis utilizing backtracking Depth-First Search (DFS) for elementary cycle enumeration, and (2) Multi-Instance Deadlock Detection utilizing the Silberschatz--Galvin--Gagne Work/Finish vector reduction procedure. 
+
+We systematically evaluate both algorithms across a broad parameter matrix spanning process counts $N \in \{5, 10, 20, 50, 100\}$, resource type counts $M \in \{3, 5, 10, 20\}$, and four distinct resource allocation patterns: acyclic chains, circular rings, heterogeneous mixed cohorts, and stochastic random allocations. Across 750 completed experimental configurations (encompassing 22,500 isolated, timed executions measured via high-resolution performance counters), we observe that topological structure dominates detection latency. In multi-instance detection, circular deadlocks exhibit an early-termination short-circuit on the very first round ($59.99\,\mu\text{s}$ mean median), while safe acyclic states force worst-case sequential cascading reduction requiring $N$ full scans ($126.54\,\mu\text{s}$ mean median). Conversely, WFG analysis incurs its highest latency on circular deadlocks ($223.11\,\mu\text{s}$) due to cycle canonicalization and blocked-process reachability traversals. 
+
+Non-parametric matched-block Friedman tests confirm omnibus pattern sensitivity ($p < 10^{-25}$), with Kendall's $W \ge 0.54$. Multivariable power-law regressions demonstrate that WFG circular detection scales super-linearly with process count ($\hat{\beta}_N = 1.2158 \pm 0.0190, t = 11.37, p < 10^{-16}$) despite circular cycle length $k = \min(N, M)$ saturating at $k=M$ across 85\% of evaluated parameter pairs, driven by $O(N^2 M)$ graph construction. Finally, pooled interaction modeling with HC3 heteroscedasticity-robust standard errors validates that resource type count $M$ exerts a significantly stronger scaling effect on multi-instance reduction than on WFG ($t_{\text{HC3}} = 7.28, p_{\text{HC3}} = 7.82 \times 10^{-12}$). These findings illustrate the critical gap between worst-case theoretical upper bounds and pattern-dependent empirical execution latency in concurrent runtime architectures.
+\end{abstract}
+
+% ==============================================================================
+% 3. INTRODUCTION
+% ==============================================================================
+\section{Introduction}
+Modern multiprogrammed operating systems, transaction processing engines, and high-performance distributed runtimes frequently allocate shared, non-preemptable resources among concurrent execution threads. When multiple processes request exclusive allocations in conflicting orders, the system risks entering a deadlock state---a permanent cessation of progress where every process in a set waits indefinitely for events or resource releases that can only be triggered by other blocked processes in the same set~\cite{coffman1971system, silberschatz2018operating}.
+
+In the taxonomic framework established by Coffman et al.~\cite{coffman1971system}, deadlocks require four simultaneous conditions: mutual exclusion, hold and wait, no preemption, and circular wait. Operating system strategies to address deadlocks fall into three broad engineering categories:
+\begin{enumerate}
+    \item \textbf{Deadlock Prevention:} Restricting resource requests statically (e.g., via strict global lock acquisition hierarchies) to mathematically eliminate at least one Coffman condition~\cite{havender1968avoiding}.
+    \item \textbf{Deadlock Avoidance:} Intercepting dynamic allocation requests at runtime and evaluating future claim matrices (e.g., Dijkstra's Banker's Algorithm~\cite{dijkstra1965solution}) to ensure the system remains exclusively within safe states.
+    \item \textbf{Deadlock Detection and Recovery:} Permitting unconstrained allocations to maximize concurrency and throughput, while periodically executing algorithmic routines to inspect the global system state, identify stalled processes, and invoke recovery mechanisms (e.g., thread preemption, process abort, or transaction rollback)~\cite{silberschatz2018operating, knapp1987deadlock}.
+\end{enumerate}
+
+While deadlock prevention and avoidance enforce conservative scheduling penalties on all transactions, deadlock detection shifts the computational burden onto periodic diagnostic sweeps. Consequently, the operational efficiency and latency of detection algorithms directly govern the overhead of concurrent resource managers. 
+
+Classic textbook expositions typically present asymptotic time complexities derived under worst-case assumptions: $O(V + E)$ or $O(N^2 M)$ for graph-based models, and $O(M \cdot N^2)$ for vector reduction algorithms~\cite{silberschatz2018operating, cormen2022introduction}. However, asymptotic big-$O$ analysis intentionally suppresses constant multipliers, cache hierarchy behavior, loop early-exit mechanics, and the structural density of the underlying allocation graphs. In real-world computing environments, processes do not allocate resources uniformly; rather, systems exhibit highly structured dependency topologies ranging from clean acyclic producer-consumer pipelines to tightly coupled dependency rings.
+
+This study presents a rigorous empirical investigation into the performance characteristics of canonical deadlock detection algorithms under systematically controlled resource allocation patterns. By decoupling workload generation from high-resolution microsecond-level timing and applying modern non-parametric and robust statistical modeling, we characterize how topological structure dictates algorithmic latency, scaling exponents, and early-termination boundaries.
+
+% ==============================================================================
+% 4. BACKGROUND AND THEORETICAL FOUNDATION
+% ==============================================================================
+\section{Background and Theoretical Foundation}
+
+\subsection{Formal System State Model}
+We formalize a concurrent system allocation state as an immutable mathematical tuple:
+\begin{equation}
+    \mathcal{S} = \langle P, R, \mathbf{Total}, \mathbf{Allocation}, \mathbf{Request}, \mathbf{Available} \rangle
+\end{equation}
+where:
+\begin{itemize}
+    \item $P = \{P_0, P_1, \dots, P_{N-1}\}$ represents a set of $N$ active concurrent processes.
+    \item $R = \{R_0, R_1, \dots, R_{M-1}\}$ represents a set of $M$ distinct, non-fungible resource types.
+    \item $\mathbf{Total} = [T_0, T_1, \dots, T_{M-1}]$ is a positive integer vector of total resource capacities ($T_j \ge 1$ for all $j \in \{0, \dots, M-1\}$).
+    \item $\mathbf{Allocation} \in \mathbb{N}_0^{N \times M}$ is the allocation matrix, where $A_{i,j}$ denotes the non-negative integer units of resource type $R_j$ currently held by process $P_i$.
+    \item $\mathbf{Request} \in \mathbb{N}_0^{N \times M}$ is the outstanding request matrix, where $Q_{i,j}$ denotes the integer units of resource type $R_j$ actively requested by process $P_i$ that cannot currently be granted.
+    \item $\mathbf{Available} = [V_0, V_1, \dots, V_{M-1}]$ is the available capacity vector representing unallocated units.
+\end{itemize}
+
+\subsubsection{Resource Conservation and Request Invariants}
+A valid system state must strictly satisfy the fundamental \textbf{Law of Resource Conservation}:
+\begin{equation}
+    V_j + \sum_{i=0}^{N-1} A_{i,j} = T_j, \quad \forall j \in \{0, 1, \dots, M-1\}
+\end{equation}
+Furthermore, non-negativity is enforced across all vectors and matrices ($A_{i,j} \ge 0, Q_{i,j} \ge 0, V_j \ge 0$).
+
+\subsubsection{Distinction Between Request and Banker's Need}
+It is critical to distinguish the $\mathbf{Request}$ matrix used in deadlock detection from the $\mathbf{Need}$ matrix used in Banker's deadlock avoidance. In Banker's algorithm, $\mathbf{Need}_{i,j} = \mathbf{Max}_{i,j} - \mathbf{Allocation}_{i,j}$ represents an upper-bound future declaration of resources that process $P_i$ \emph{may} request over its entire lifetime. In contrast, the $\mathbf{Request}_{i,j}$ matrix in detection models represents \textbf{actual, currently blocked outstanding requests} that have already been issued by the process and are awaiting fulfillment by the operating system kernel.
+
+\subsection{Single-Instance Deadlock Detection: Wait-For Graph (WFG)}
+In environments where every resource type possesses exactly one unit instance ($T_j = 1$ for all $j$), the system is classified as a \textbf{single-instance resource system}.
+
+\subsubsection{Graph Construction}
+A directed Wait-For Graph $G = (V, E)$ is constructed by collapsing bipartite resource allocation graphs into a process-to-process dependency topology:
+\begin{itemize}
+    \item The vertex set $V$ corresponds to the active processes $\{P_0, P_1, \dots, P_{N-1}\}$.
+    \item A directed edge $(P_i, P_j) \in E$ is introduced if and only if process $P_i$ is actively waiting for a resource currently held by $P_j$:
+    \begin{equation}
+        (P_i, P_j) \in E \iff \exists k \in \{0, \dots, M-1\} : (Q_{i,k} > V_k) \wedge (A_{j,k} > 0) \wedge (i \neq j)
+    \end{equation}
+\end{itemize}
+Constructing this adjacency list requires inspecting $N$ processes across $M$ resource types, checking which other process holds the contested resource. For a simple graph without self-loops where processes may request multiple resources, the general edge bound is $E \le N(N - 1)$. The graph construction phase incurs:
+\begin{equation}
+    T_{\text{construct}} = O(N^2 \cdot M)
+\end{equation}
+
+\subsubsection{Necessity and Sufficiency of Directed Cycles}
+In a single-instance system, a directed cycle in the Wait-For Graph is both a \textbf{necessary and sufficient condition} for deadlock~\cite{silberschatz2018operating}:
+\begin{itemize}
+    \item \textbf{Sufficiency:} If a cycle $P_0 \to P_1 \to \dots \to P_{k-1} \to P_0$ exists, each process $P_i$ is blocked on a resource held exclusively by $P_{(i+1)\bmod k}$. Since $T_j = 1$, no unallocated units exist, and no external process can release the held resource. Hence, no process in the cycle can ever progress.
+    \item \textbf{Necessity:} If a single-instance system is deadlocked, there exists a set of stalled processes waiting exclusively on one another, which directly forms a closed directed chain in the graph.
+\end{itemize}
+
+\subsubsection{Cycle-Existence vs. Elementary Cycle Enumeration}
+While testing for the presence of \emph{any} cycle via standard DFS requires $O(V + E)$ operations, practical operating system diagnostics often require isolating the exact cycle members to target process termination or victim selection. Our implementation uses recursive backtracking DFS to identify and canonicalize all elementary directed cycles. We emphasize that this implementation \textbf{is not Johnson's cycle-finding algorithm}~\cite{johnson1975finding}, which actively maintains unblocking mechanisms to achieve an optimal asymptotic bound of $O((V + E)(C + 1))$. Pure backtracking DFS can traverse an exponential number of simple paths even in graphs with few cycles, making execution latency sensitive to overall graph connectivity.
+
+\subsubsection{Separation of Blocked Processes}
+Processes that can reach a cycle via directed edges ($P_{\text{tail}} \to^* P_{\text{cycle}}$) are \textbf{transitively blocked} behind the deadlock, but are not themselves part of the circular wait. The detection engine identifies cycle members and separately performs Breadth-First Search (BFS) reachability traversals to classify transitively blocked processes.
+
+\subsection{Multi-Instance Deadlock Detection: Work/Finish Reduction}
+In systems where resource types possess multiple units ($T_j > 1$), a directed cycle in a process-to-process graph is a \textbf{necessary, but not sufficient condition} for deadlock~\cite{silberschatz2018operating}. Other unallocated units or independent processes holding the same resource type may complete and break the apparent cycle.
+
+\subsubsection{Silberschatz Algorithm Specification (§8.6)}
+Deadlock detection in multi-instance models is executed via the vector reduction algorithm formalized by Silberschatz, Galvin, and Gagne~\cite{silberschatz2018operating}:
+\begin{enumerate}
+    \item \textbf{Initialization:} Initialize a working available vector $\mathbf{Work} \in \mathbb{N}_0^M$ and a completion status vector $\mathbf{Finish} \in \{\text{True}, \text{False}\}^N$:
+    \begin{align}
+        \mathbf{Work} &= \mathbf{Available} \\
+        \mathbf{Finish}[i] &= \begin{cases}
+            \text{True}, & \text{if } \mathbf{Allocation}[i] = [0, 0, \dots, 0] \\
+            \text{False}, & \text{otherwise}
+        \end{cases}
+    \end{align}
+    (Processes holding zero allocations cannot withhold resources from others and are marked finished immediately).
+    \item \textbf{Search Step:} Search for an index $i \in \{0, \dots, N-1\}$ such that:
+    \begin{equation}
+        \mathbf{Finish}[i] == \text{False} \quad \wedge \quad \mathbf{Request}[i, j] \le \mathbf{Work}[j], \quad \forall j \in \{0, \dots, M-1\}
+    \end{equation}
+    \item \textbf{Reduction Step:} If such an index $i$ is discovered, process $P_i$ is assumed to run to completion and return all its allocated units to the available pool:
+    \begin{equation}
+        \mathbf{Work}[j] \leftarrow \mathbf{Work}[j] + \mathbf{Allocation}[i, j], \quad \forall j \in \{0, \dots, M-1\}
+    \end{equation}
+    Set $\mathbf{Finish}[i] \leftarrow \text{True}$, and repeat from Step 2.
+    \item \textbf{Verdict:} If no such index $i$ exists after scanning all unfinished processes, the algorithm terminates. The system is deadlocked if and only if:
+    \begin{equation}
+        \exists i \in \{0, \dots, N-1\} : \mathbf{Finish}[i] == \text{False}
+    \end{equation}
+    All processes with $\mathbf{Finish}[i] == \text{False}$ constitute the exact deadlocked set.
+\end{enumerate}
+
+\subsubsection{Theoretical Worst-Case Complexity}
+In the worst case, exactly one process satisfies Step 2 per outer search loop. Evaluating vector requests across $M$ types for the remaining unfinished processes requires $N + (N-1) + \dots + 1 = \frac{N(N+1)}{2}$ vector checks. Thus:
+\begin{equation}
+    T_{\text{multi\_worst}} = O(M \cdot N^2)
+\end{equation}
+
+% ==============================================================================
+% 5. PROBLEM STATEMENT AND RESEARCH GAP
+% ==============================================================================
+\section{Problem Statement and Research Gap}
+
+\subsection{Problem Statement}
+Theoretical complexity classifications evaluate algorithms by their asymptotic upper bounds as $N, M \to \infty$. However, operating system resource managers operate on finite sets of concurrent processes ($N \le 100$) and system resource classes ($M \le 20$). In these realistic operational regimes, the actual execution latency of detection algorithms is heavily governed by \textbf{topology-dependent early termination}, \textbf{cache footprint}, and \textbf{vector comparison overheads}. Existing operating system literature lacks a unified, statistically controlled empirical study characterizing how distinct resource allocation patterns (acyclic pipelines vs. circular rings vs. heterogeneous mixed states) alter detection latency across both single-instance and multi-instance resource models.
+
+\subsection{Research Gap}
+Prior empirical investigations in deadlock management exhibit three primary methodological limitations:
+\begin{enumerate}
+    \item \textbf{Conflation of Incompatible Models:} Studies frequently attempt to run Wait-For Graph cycle finders on multi-instance states, or conflate multi-instance vector reduction with Banker's safety checks, failing to enforce mathematical model validity.
+    \item \textbf{Timing Contamination:} Prior benchmarks frequently interleave workload generation, matrix validation, and result logging within the timed benchmarking loop, contaminating algorithm execution metrics with generation noise.
+    \item \textbf{Unsubstantiated Statistical Claims:} Many performance evaluations rely on small repetition counts ($N \le 5$), fail to report variance or confidence bounds, and mistake independent sample tests for paired factorial designs without verifying underlying assumptions.
+\end{enumerate}
+This research bridges this gap by implementing an isolated, reproducible benchmarking engine that enforces model-detector compatibility, measures isolated microsecond timings over 30 repetitions, and applies modern non-parametric and robust statistical modeling.
+
+% ==============================================================================
+% 6. RESEARCH QUESTIONS AND OBJECTIVES
+% ==============================================================================
+\section{Research Questions and Objectives}
+
+\subsection{Research Questions}
+This investigation is structured around six core research questions:
+\begin{itemize}
+    \item \textbf{RQ1:} How do topological resource allocation patterns (acyclic, circular, mixed, random) impact algorithmic detection latency?
+    \item \textbf{RQ2:} How does scaling process count ($N$) affect detection latency across cyclic and acyclic patterns?
+    \item \textbf{RQ3:} How does resource type dimensionality ($M$) affect vector comparison latency in multi-instance reduction compared to graph traversal in WFG?
+    \item \textbf{RQ4:} How do single-instance and multi-instance algorithms behave under their respective sound resource models?
+    \item \textbf{RQ5:} Can deterministic synthetic topologies be verified against analytical ground truth with 100\% accuracy?
+    \item \textbf{RQ6:} What empirical conclusions can and cannot be drawn from stochastic random allocation workloads?
+\end{itemize}
+
+\subsection{Research Objectives}
+\begin{enumerate}
+    \item Construct a modular, immutable data model enforcing resource conservation and matrix invariants.
+    \item Implement verified Wait-For Graph and Multi-Instance Reduction detection engines.
+    \item Author four deterministic and stochastic workload generators producing valid states across wide parameter ranges.
+    \item Execute a full factorial benchmark matrix ($5 \times 4 \times 4 \times 2 \times 5 = 800$ planned configurations) with strictly isolated timing blocks.
+    \item Conduct rigorous statistical regression, diagnostic, and non-parametric hypothesis testing.
+\end{enumerate}
+
+% ==============================================================================
+% 7. LITERATURE REVIEW
+% ==============================================================================
+\section{Literature Review}
+A comprehensive survey of classical and modern literature establishes the theoretical foundations of our evaluation:
+
+\begin{table}[H]
+\centering
+\caption{Taxonomy of Foundational Literature in Deadlock Analysis and Detection}
+\label{tab:lit_review}
+\small
+\begin{tabularx}{\textwidth}{p{3.2cm}p{2.5cm}X}
+\toprule
+\textbf{Citation} & \textbf{Paradigm} & \textbf{Core Contribution and Architectural Relevance} \\
+\midrule
+Coffman et al. (1971)~\cite{coffman1971system} & System Deadlocks & Formalized the four necessary and sufficient conditions for deadlock; established foundational taxonomy for graph and matrix modeling. \\
+Dijkstra (1965)~\cite{dijkstra1965solution} & Avoidance & Developed the Banker's Algorithm; proved safe-state preservation over future claim matrices. \\
+Havender (1968)~\cite{havender1968avoiding} & Prevention & Proved that imposing a strict linear global acquisition hierarchy on lock orders mathematically eliminates circular wait. \\
+Holt (1972)~\cite{holt1972deadlocks} & Graph Models & Formalized bipartite Resource Allocation Graphs (RAG) and established graph reduction rules for multi-instance resource systems. \\
+Knapp (1987)~\cite{knapp1987deadlock} & Distributed Systems & Surveyed distributed deadlock detection algorithms (path-pushing, edge-chasing, diffusion computation); analyzed message complexities. \\
+Johnson (1975)~\cite{johnson1975finding} & Graph Theory & Established the optimal $O((V+E)(C+1))$ algorithm for finding all elementary cycles in directed graphs via vertex unblocking. \\
+Silberschatz et al. (2018)~\cite{silberschatz2018operating} & System Architecture & Defined the canonical Work/Finish vector reduction algorithm for multi-instance deadlock detection (§8.6). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% 8. RESEARCH HYPOTHESES
+% ==============================================================================
+\section{Research Hypotheses}
+Based on theoretical mechanics, we formalize four testable research hypotheses:
+\begin{itemize}
+    \item \textbf{Hypothesis 1 (H1: Pattern Sensitivity):} The topological allocation pattern will exert a statistically significant effect on detection latency for both algorithms, with cyclic deadlocks producing distinct latency distributions compared to safe acyclic pipelines.
+    \item \textbf{Hypothesis 2 (H2: Super-Linear WFG Process Scaling):} In single-instance circular workloads, WFG detection latency will scale super-linearly with process count $N$ ($\beta_N > 1.0$), driven by the combined cost of graph construction and path enumeration.
+    \item \textbf{Hypothesis 3 (H3: Multi-Instance Early Termination):} Multi-instance reduction will detect circular deadlocks significantly faster than safe acyclic states under identical $(N, M, \text{seed})$ configurations due to immediate first-round loop termination.
+    \item \textbf{Hypothesis 4 (H4: Differential Resource Scaling):} Resource type count $M$ will exert a significantly stronger positive scaling effect on multi-instance reduction latency than on WFG latency, driven by vector comparison width.
+\end{itemize}
+
+% ==============================================================================
+% 9. RESEARCH METHODOLOGY
+% ==============================================================================
+\section{Research Methodology}
+
+\subsection{Factorial Parameter Matrix}
+The benchmark matrix was designed across five experimental dimensions:
+\begin{itemize}
+    \item \textbf{Process Counts ($N$):} $\{5, 10, 20, 50, 100\}$ (5 levels)
+    \item \textbf{Resource Type Counts ($M$):} $\{3, 5, 10, 20\}$ (4 levels)
+    \item \textbf{Allocation Patterns:} Acyclic, Circular, Mixed, Random (4 levels)
+    \item \textbf{Resource Models:} Single-Instance ($T_j = 1$), Multi-Instance ($T_j = 5$) (2 levels)
+    \item \textbf{Deterministic Seeds:} $\{101, 202, 303, 404, 505\}$ (5 replications)
+\end{itemize}
+$$\text{Total Planned Configurations} = 5 \times 4 \times 4 \times 2 \times 5 = 800\text{ configurations}$$
+
+\subsection{Configuration Coverage and Execution Accounting}
+Of the 800 planned configurations, exactly \textbf{750 configurations completed successfully} (93.75\%), and \textbf{50 configurations were recorded as unsupported} (6.25\%). There were \textbf{zero failed configurations} or unhandled exceptions.
+
+\begin{table}[H]
+\centering
+\caption{Benchmark Matrix Execution Accounting}
+\label{tab:exec_accounting}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Category} & \textbf{Count} & \textbf{Percentage} \\
+\midrule
+Planned Configurations & 800 & 100.0\% \\
+Successfully Completed Configurations & 750 & 93.75\% \\
+Unsupported Configurations ($M=3$, Mixed pattern) & 50 & 6.25\% \\
+Failed / Runtime Erroneous Configurations & 0 & 0.00\% \\
+\midrule
+Timed Algorithm Repetitions ($750 \times 30$) & 22,500 & --- \\
+Untimed Warm-Up Priming Runs ($750 \times 5$) & 3,750 & --- \\
+Untimed Pre-Validation Verification Runs ($750 \times 1$) & 750 & --- \\
+\textbf{Total Algorithm Invocations} & \textbf{27,000} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Justification for Unsupported Configurations}
+The 50 unsupported configurations correspond strictly to trials where $\text{Pattern} = \text{mixed}$ and $M = 3$ (across all 5 process counts, 2 models, and 5 seeds: $5 \times 2 \times 5 = 50$). The mixed workload generator partitions the system into three non-overlapping cohorts: a deadlocked cycle ($k = 2$), a blocked cohort ($b = 1$), and an independent safe cohort ($s \ge 1$). Ensuring that the safe cohort holds independent resources capable of immediate release without satisfying the deadlocked cycle requires:
+\begin{equation}
+    M_{\text{min}} \ge k + b + 1 = 2 + 1 + 1 = 4\text{ resource types}
+\end{equation}
+When $M = 3 < 4$, distinct cohort isolation is mathematically impossible. Rather than silently altering $M$ or violating workload specifications, the engine logged these 50 configurations as unsupported with explicit cause: \texttt{"m (3) must be >= 4 to fit distinct resource allocations"}.
+
+\subsection{Timing Isolation Architecture}
+To prevent measurement contamination, execution follows strict isolation protocols:
+\begin{enumerate}
+    \item Workload generation, state allocation, invariant validation, and ground-truth verification occur strictly outside the timed block.
+    \item Five unmeasured warm-up iterations prime CPU instruction caches and Python bytecode dispatch.
+    \item Exactly 30 measurement iterations are executed within an isolated loop using \texttt{time.perf\_counter()}.
+    \item Result aggregation, statistical computation, and JSON/CSV serialization occur post-measurement.
+\end{enumerate}
+
+% ==============================================================================
+% 10. SYSTEM ARCHITECTURE AND ALGORITHM DESIGN
+% ==============================================================================
+\section{System Architecture and Algorithm Design}
+
+\subsection{Software Architecture Overview}
+The research framework is implemented in standard-library Python (CPython 3.14.7), organized into distinct modular packages:
+\begin{itemize}
+    \item \texttt{src/models.py}: Defines immutable dataclasses for \texttt{SystemState}, enforcing resource conservation and boundary assertions.
+    \item \texttt{src/detectors/}: Implements \texttt{wait\_for\_graph.py} and \texttt{multi\_instance\_detector.py}.
+    \item \texttt{src/generators/}: Implements four topology generators (\texttt{acyclic\_pattern.py}, \texttt{circular\_pattern.py}, \texttt{mixed\_pattern.py}, \texttt{random\_pattern.py}).
+    \item \texttt{src/benchmark.py}: Implements the isolated timing engine, summary statistics, and dual-format persistence.
+    \item \texttt{src/analysis/}: Implements visualization and statistical analysis pipelines.
+\end{itemize}
+
+\subsection{Detector-Model Compatibility Enforcement}
+A strict architectural invariant prohibits running detection algorithms on incompatible resource models:
+\begin{equation}
+    \text{Compatible}(\text{WFG}, \mathcal{S}) \iff \forall j \in \{0, \dots, M-1\}, T_j = 1
+\end{equation}
+Invoking WFG on a state with $\max(\mathbf{Total}) > 1$ raises \texttt{IncompatibleDetectorError}. Multi-instance reduction is mathematically valid across all integer capacities $\mathbf{Total} \ge 1$.
+
+% ==============================================================================
+% 11. EXPERIMENTAL SETUP AND CONFIGURATION
+% ==============================================================================
+\section{Experimental Setup and Configuration}
+
+\subsection{Hardware and Host Environment}
+All benchmarks were executed on an isolated dedicated host:
+\begin{itemize}
+    \item \textbf{Operating System:} Microsoft Windows 11 Enterprise (build 10.0.26300, 64-bit AMD64)
+    \item \textbf{Processor:} Intel Core i7-13700H (Intel64 Family 6 Model 183 Stepping 1, 16 logical cores)
+    \item \textbf{Python Runtime:} CPython 3.14.7 (64-bit)
+    \item \textbf{Timer Implementation:} \texttt{time.perf\_counter()} (backed by Windows QueryPerformanceCounter, resolution $< 1\,\mu\text{s}$)
+    \item \textbf{Execution Elapsed Time:} 3.18 seconds for the complete 27,000-invocation matrix.
+\end{itemize}
+
+% ==============================================================================
+% 12. IMPLEMENTATION DETAILS
+% ==============================================================================
+\section{Implementation Details}
+
+\subsection{Workload Generators}
+\begin{enumerate}
+    \item \textbf{Acyclic Pattern:} Constructs a linear dependency chain where $P_i$ holds $R_i$ and requests $R_{i+1}$. The terminal process $P_{N-1}$ holds resources but has zero requests, ensuring that it finishes and triggers a cascading unblocking of all preceding processes without deadlocking.
+    \item \textbf{Circular Pattern:} Constructs an unresolvable circular wait ring among $k = \min(N, M)$ processes: $P_0 \to P_1 \to \dots \to P_{k-1} \to P_0$. In single-instance models, $T_j = 1$. In multi-instance models, all $T_j = 5$ units of cycle resources are allocated to cycle participants, ensuring $\mathbf{Available} = [0, \dots, 0]$ and forcing a deadlock.
+    \item \textbf{Mixed Pattern:} Partitions processes into three distinct cohorts: a 2-process circular deadlock, a 1-process transitively blocked cohort waiting on the cycle, and an independent safe cohort with zero requests.
+    \item \textbf{Random Pattern:} Stochastic allocation using isolated pseudo-random instances (\texttt{random.Random(seed)}) with allocation ratio 0.7 and request probability 0.5.
+\end{enumerate}
+
+% ==============================================================================
+% 13. VALIDATION AND CORRECTNESS TESTING
+% ==============================================================================
+\section{Validation and Correctness Testing}
+The test suite consists of 59 unit tests executed via \texttt{unittest}:
+\begin{itemize}
+    \item \texttt{test\_models.py} (10 tests): Validates resource conservation, non-negative bounds, and matrix immutability.
+    \item \texttt{test\_wait\_for\_graph.py} (8 tests): Validates WFG edge generation, elementary cycle identification, and blocked-process separation.
+    \item \texttt{test\_multi\_instance\_detector.py} (6 tests): Validates vector reduction, partial deadlocks, and safe states.
+    \item \texttt{test\_ground\_truth.py} (9 tests): Validates algorithms against 8 canonical analytical ground-truth states.
+    \item \texttt{test\_generators.py} (15 tests): Validates generator invariants, dimensions, and seed reproducibility.
+    \item \texttt{test\_benchmark.py} (11 tests): Validates timing isolation, sample standard deviation ($N < 2$ null handling), and overwrite protection.
+\end{itemize}
+All 59 tests pass in 0.292s. Full regression suites for CA2 (233 tests) and CA3 (7 tests including a 100-run concurrency stress test) were verified with 100\% pass rates.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig6_correctness_verification_summary.png}
+\caption{Ground-truth verification outcomes across deterministic and stochastic allocation patterns.}
+\label{fig:correctness_summary}
+\end{figure}
+
+As shown in Figure~\ref{fig:correctness_summary}, all deterministic workloads (acyclic, circular, mixed) achieved \textbf{100\% ground-truth verification accuracy} against independent analytical expectations. Random workloads are preserved as unverified due to the absence of an external oracle.
+
+% ==============================================================================
+% 14. EXPERIMENTAL RESULTS
+% ==============================================================================
+\section{Experimental Results}
+
+\subsection{Summary of Empirical Detection Metrics}
+Table~\ref{tab:results_summary} presents aggregated detection latency metrics across all completed configurations. All durations are expressed in microseconds ($\mu\text{s}$).
+
+\begin{table}[H]
+\centering
+\caption{Empirical Deadlock Detection Metrics Across 750 Completed Configurations}
+\label{tab:results_summary}
+\small
+\begin{tabularx}{\textwidth}{llrrrrrr}
+\toprule
+\textbf{Resource Model} & \textbf{Pattern} & \textbf{Trials} & \textbf{Mean Med.} & \textbf{Min Med.} & \textbf{Max Med.} & \textbf{Mean StdDev} & \textbf{Det. Pos.} \\
+\midrule
+\multirow{4}{*}{\textbf{Single-Instance (WFG)}} 
+ & Acyclic  & 100 & $97.76\,\mu\text{s}$ & $11.60\,\mu\text{s}$ & $319.65\,\mu\text{s}$ & $35.04\,\mu\text{s}$ & 0.0\% \\
+ & Circular & 100 & $223.11\,\mu\text{s}$ & $15.30\,\mu\text{s}$ & $952.95\,\mu\text{s}$ & $47.80\,\mu\text{s}$ & 100.0\% \\
+ & Mixed    & 75  & $99.10\,\mu\text{s}$ & $14.05\,\mu\text{s}$ & $388.30\,\mu\text{s}$ & $43.39\,\mu\text{s}$ & 100.0\% \\
+ & Random   & 100 & $63.87\,\mu\text{s}$ & $9.50\,\mu\text{s}$  & $430.00\,\mu\text{s}$ & $45.09\,\mu\text{s}$ & 0.0\% \\
+\midrule
+\multirow{4}{*}{\textbf{Multi-Instance (Reduction)}} 
+ & Acyclic  & 100 & $126.54\,\mu\text{s}$ & $14.75\,\mu\text{s}$ & $598.70\,\mu\text{s}$ & $21.44\,\mu\text{s}$ & 0.0\% \\
+ & Circular & 100 & $59.99\,\mu\text{s}$  & $8.00\,\mu\text{s}$  & $356.50\,\mu\text{s}$ & $9.88\,\mu\text{s}$  & 100.0\% \\
+ & Mixed    & 75  & $76.67\,\mu\text{s}$  & $14.00\,\mu\text{s}$ & $259.70\,\mu\text{s}$ & $10.59\,\mu\text{s}$ & 100.0\% \\
+ & Random   & 100 & $56.36\,\mu\text{s}$  & $8.50\,\mu\text{s}$  & $258.95\,\mu\text{s}$ & $4.66\,\mu\text{s}$  & 72.0\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Process and Resource Scaling Visualizations}
+Figure~\ref{fig:scaling_processes} illustrates detection time scaling as a function of process count $N$. In the single-instance WFG model, circular deadlocks exhibit pronounced super-linear scaling, rising from $15.3\,\mu\text{s}$ to $952.95\,\mu\text{s}$. In multi-instance reduction, circular deadlocks scale sub-linearly, while acyclic reductions exhibit the highest execution latency.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig1_detection_time_vs_processes.png}
+\caption{Deadlock detection time vs. process count ($N$) across patterns, with 25th--75th percentile Interquartile Range (IQR) bands.}
+\label{fig:scaling_processes}
+\end{figure}
+
+Figure~\ref{fig:scaling_resources} presents scaling as a function of resource type count $M$. In multi-instance reduction, detection time rises steeply with $M$ under acyclic workloads. In WFG, resource count has minimal impact on traversal once edges are established.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig2_detection_time_vs_resources.png}
+\caption{Deadlock detection time vs. resource type count ($M$) across allocation patterns.}
+\label{fig:scaling_resources}
+\end{figure}
+
+\subsection{Algorithmic Scaling Breakdown}
+Figure~\ref{fig:separate_breakdown} separates the scaling curves into a four-panel view, clearly showing the contrast between graph-based cycle detection and vector reduction.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig4_separate_scaling_breakdown.png}
+\caption{Independent four-panel scaling breakdown for Single-Instance WFG and Multi-Instance Reduction.}
+\label{fig:separate_breakdown}
+\end{figure}
+
+\subsection{Noise and Microbenchmark Skewness}
+Figure~\ref{fig:mean_vs_median} compares mean versus median execution times per configuration. While the majority of observations lie along the 1:1 parity line, occasional positive outlier spikes occur in single-instance trials due to operating system scheduling quantum preemption, justifying our use of the median as the primary central tendency metric.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.68\textwidth]{fig3_mean_vs_median_comparison.png}
+\caption{Comparison of mean vs. median detection time per trial, demonstrating positive microbenchmark skewness.}
+\label{fig:mean_vs_median}
+\end{figure}
+
+\subsection{Stochastic Random Workload Behavior}
+Figure~\ref{fig:random_positive} illustrates the detector-positive rate across process counts for stochastic random workloads. In single-instance systems, 0\% of random states formed deadlocks. In multi-instance systems, 72\% of trials resulted in positive deadlock detection, demonstrating that accumulating vector requests rapidly saturate unallocated capacity.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{fig5_random_detector_positive_rate.png}
+\caption{Detector-positive output rates across process counts for stochastic random workloads.}
+\label{fig:random_positive}
+\end{figure}
+
+% ==============================================================================
+% 15. STATISTICAL ANALYSIS AND HYPOTHESIS EVALUATION
+% ==============================================================================
+\section{Statistical Analysis and Hypothesis Evaluation}
+
+\subsection{Multivariable Power-Law Regression Models}
+We fit multivariable log-log models across all models and patterns:
+\begin{equation}
+    \ln(\text{Median Time}) = \beta_0 + \beta_N \ln(N) + \beta_M \ln(M)
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Multivariable Log-Log Regression Parameter Estimates}
+\label{tab:multivar_reg}
+\small
+\begin{tabularx}{\textwidth}{llrrrrrr}
+\toprule
+\textbf{Model} & \textbf{Pattern} & \textbf{Obs.} & $\hat{\beta}_0$ [95\% CI] & $\hat{\beta}_N$ [95\% CI] & $\hat{\beta}_M$ [95\% CI] & $R^2$ \\
+\midrule
+\multirow{4}{*}{\textbf{WFG}}
+ & Acyclic  & 100 & $0.5634$ [$0.3856, 0.7412$] & $0.7978$ [$0.7577, 0.8378$] & $0.5676$ [$0.5074, 0.6278$] & 0.9518 \\
+ & Circular & 100 & $0.4829$ [$0.3155, 0.6503$] & $1.2158$ [$1.1781, 1.2535$] & $0.1756$ [$0.1189, 0.2323$] & 0.9771 \\
+ & Mixed    & 75  & $0.8857$ [$0.5598, 1.2116$] & $0.8635$ [$0.8038, 0.9231$] & $0.2663$ [$0.1529, 0.3797$] & 0.9223 \\
+ & Random   & 100 & $0.3598$ [$0.1944, 0.5253$] & $0.8513$ [$0.8141, 0.8885$] & $0.3375$ [$0.2815, 0.3935$] & 0.9578 \\
+\midrule
+\multirow{4}{*}{\textbf{Multi-Inst.}}
+ & Acyclic  & 100 & $0.3959$ [$0.1067, 0.6851$] & $0.6310$ [$0.5659, 0.6961$] & $0.9837$ [$0.8858, 1.0816$] & 0.8878 \\
+ & Circular & 100 & $0.3991$ [$0.2127, 0.5855$] & $0.7912$ [$0.7492, 0.8331$] & $0.4131$ [$0.3500, 0.4762$] & 0.9418 \\
+ & Mixed    & 75  & $0.1171$ [$-0.1148, 0.3490$] & $0.7112$ [$0.6688, 0.7537$] & $0.7174$ [$0.6367, 0.7981$] & 0.9520 \\
+ & Random   & 100 & $0.5337$ [$0.3411, 0.7264$] & $0.7844$ [$0.7410, 0.8278$] & $0.3359$ [$0.2706, 0.4011$] & 0.9349 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Figure~\ref{fig:reg_diagnostics} confirms high goodness-of-fit across all patterns, while Figure~\ref{fig:reg_coefs} displays estimated exponents with 95\% confidence intervals.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fig7_observed_vs_fitted_regression.png}
+    \caption{Observed vs. fitted regression diagnostics.}
+    \label{fig:reg_diagnostics}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{fig8_multivariable_coefficients_ci.png}
+    \caption{Estimated exponents with 95\% CIs.}
+    \label{fig:reg_coefs}
+\end{subfigure}
+\caption{Multivariable regression diagnostics and parameter estimates.}
+\end{figure}
+
+\subsection{Formal Hypothesis Evaluations}
+
+\subsubsection{Hypothesis 1: Allocation Pattern Sensitivity}
+In the balanced subset ($M \in \{5, 10, 20\}$), exactly 75 matched configuration blocks exist across all four patterns.
+\begin{itemize}
+    \item \textbf{Primary Omnibus Analysis (Friedman Test on 75 Matched Blocks):}
+    \begin{align}
+        \text{WFG:} \quad &\chi^2 = 132.760, \quad df = 3, \quad p = 1.37 \times 10^{-28}, \quad \text{Kendall's } W = 0.5900 \\
+        \text{Multi-Instance:} \quad &\chi^2 = 122.520, \quad df = 3, \quad p = 2.21 \times 10^{-26}, \quad \text{Kendall's } W = 0.5445
+    \end{align}
+    \item \textbf{Pairwise Post-Hoc Tests (Paired Wilcoxon, $\alpha_{\text{bonf}} = 0.008333$):}
+    As established in Section 14, in Multi-Instance reduction, Acyclic is significantly slower than Circular ($p = 1.18 \times 10^{-13}$), Mixed ($p = 5.28 \times 10^{-14}$), and Random ($p = 3.17 \times 10^{-13}$). In WFG, Circular is significantly slower than all other patterns ($p < 10^{-4}$).
+\end{itemize}
+\textbf{Conclusion for H1: SUPPORTED.}
+
+\subsubsection{Hypothesis 2: WFG Circular Super-Linear Process Scaling}
+To test whether process scaling is strictly super-linear ($\beta_N > 1.0$), we evaluate one-sided Student's $t$-tests:
+\begin{itemize}
+    \item \textbf{Primary Multivariable Model (df=97):} $\hat{\beta}_N = 1.2158 \pm 0.0190$.
+    \begin{equation}
+        t = \frac{1.2158 - 1.0}{0.0190} = 11.3674, \quad p < 1.00 \times 10^{-16}
+    \end{equation}
+    \item \textbf{Univariate Model (df=98):} $\hat{\beta}_N = 1.2158 \pm 0.0223$.
+    \begin{equation}
+        t = \frac{1.2158 - 1.0}{0.0223} = 9.6914, \quad p = 3.33 \times 10^{-16}
+    \end{equation}
+\end{itemize}
+\textbf{Conclusion for H2: SUPPORTED (with qualification).} Process scaling is super-linear. However, because cycle length saturates at $k=M$ for 17 out of 20 parameter combinations (85\%), this scaling is driven by $O(N^2 M)$ graph construction and path traversal through non-cycle nodes, rather than expanding cycle rings.
+
+\subsubsection{Hypothesis 3: Multi-Instance Early Termination}
+A paired Wilcoxon signed-rank test on 100 exact matched pairs ($N, M, \text{seed}$) confirmed that circular detection time is significantly lower than acyclic detection time:
+\begin{equation}
+    W = 177.0, \quad p = 3.42 \times 10^{-16}
+\end{equation}
+Execution trace inspection confirms the underlying mechanism: circular deadlocks with zero available units terminate immediately on round 1 (2 trace events), whereas safe acyclic reductions require $N$ sequential loop iterations ($N + 2$ trace events).  
+\textbf{Conclusion for H3: SUPPORTED.}
+
+\subsubsection{Hypothesis 4: Differential Resource Count Scaling (Interaction Model)}
+We evaluate a pooled interaction regression on acyclic workloads:
+\begin{equation}
+    \ln(\text{Median Time}) = \beta_0 + \beta_1 \text{is\_multi} + \beta_2 \ln(N) + \beta_3 \ln(M) + \beta_4 (\ln(M) \cdot \text{is\_multi})
+\end{equation}
+\begin{itemize}
+    \item \textbf{Breusch-Pagan Test:} $LM = 22.088, df = 4, p = 1.93 \times 10^{-4}$ (statistically significant heteroscedasticity detected; HC3 robust standard errors required).
+    \item \textbf{Parameter Estimates:}
+    \begin{align}
+        \text{Classical OLS:} \quad &\hat{\beta}_4 = 0.4160, \quad \text{SE} = 0.0605, \quad p = 8.06 \times 10^{-11} \\
+        \text{Robust HC3:} \quad &\hat{\beta}_4 = 0.4160, \quad \text{SE}_{\text{HC3}} = 0.0571, \quad 95\%\text{ CI} = [0.3034, 0.5287], \quad p_{\text{HC3}} = 7.82 \times 10^{-12}
+    \end{align}
+\end{itemize}
+\textbf{Conclusion for H4: SUPPORTED.} Resource count $M$ exerts a significantly stronger scaling effect on multi-instance reduction than on WFG, confirmed robust to heteroscedasticity.
+
+% ==============================================================================
+% 16. DISCUSSION AND INTERPRETATION
+% ==============================================================================
+\section{Discussion and Interpretation}
+Our empirical findings reveal that runtime topology inverts algorithmic advantages:
+\begin{enumerate}
+    \item \textbf{Topology-Driven Inversion:} Multi-instance reduction is conventionally characterized as an expensive $O(M \cdot N^2)$ algorithm. However, under cyclic deadlock conditions, available units are immediately exhausted, and the reduction loop terminates on its very first pass ($O(N \cdot M)$). Consequently, multi-instance reduction detects deadlocks \emph{faster} than it verifies safe acyclic allocations.
+    \item \textbf{Graph Construction Dominance in WFG:} In single-instance WFG, cycle detection over an existing graph is rapid. However, mapping the $N \times M$ matrix into an adjacency list imposes a quadratic $O(N^2 M)$ construction overhead that dominates overall latency for $N \ge 50$.
+    \item \textbf{Incomparability of Resource Models:} Single-instance WFG and multi-instance reduction must not be ranked against each other as direct competitors. Single-instance WFG is sound only when $T_j = 1$. Multi-instance reduction correctly handles arbitrary capacities, but operates over vector arithmetic rather than topological pointer traversals.
+\end{enumerate}
+
+% ==============================================================================
+% 17. THREATS TO VALIDITY AND LIMITATIONS
+% ==============================================================================
+\section{Threats to Validity and Limitations}
+
+\subsection{Threats to Validity}
+\begin{itemize}
+    \item \textbf{Construct Validity (Synthetic Workloads):} Real-world databases and kernels exhibit non-uniform access skew (e.g., Zipfian/Pareto lock contention) rather than homogeneous rings or synthetic pipelines.
+    \item \textbf{Internal Validity (Runtime Noise):} Microsecond timings are vulnerable to Windows thread quantum scheduling and CPU frequency scaling. Mitigated by 5 warm-ups, 30 repetitions, and median aggregation.
+    \item \textbf{External Validity:} Findings represent algorithmic scaling boundaries in managed runtimes rather than production lock-manager throughput in C/Rust kernels.
+\end{itemize}
+
+\subsection{Study Limitations}
+\begin{itemize}
+    \item Backtracking DFS is not Johnson's optimal algorithm and explores an exponential path volume in dense topologies.
+    \item Cycle length $k = \min(N, M)$ saturates at $k=M$ for 85\% of evaluated parameter pairs.
+    \item The mixed pattern is unsupported at $M=3$ due to cohort isolation constraints.
+    \item Random workloads lack external ground truth and are strictly reported as detector-positive rates.
+\end{itemize}
+
+% ==============================================================================
+% 18. CONCLUSION
+% ==============================================================================
+\section{Conclusion}
+This study presented a rigorous theoretical and empirical performance evaluation of single-instance Wait-For Graph analysis and multi-instance vector reduction across 750 factorial configurations. By strictly isolating timing measurements and applying robust non-parametric and regression diagnostics, we demonstrated that resource allocation topology dictates algorithmic execution latency. Multi-instance reduction short-circuits on circular deadlocks in $O(N \cdot M)$ time, whereas WFG incurs super-linear scaling ($\hat{\beta}_N = 1.2158$) driven by graph construction. These results provide concrete empirical guidance for operating system lock managers and transaction schedulers.
+
+% ==============================================================================
+% 19. FUTURE SCOPE
+% ==============================================================================
+\section{Future Scope}
+Future investigations will explore:
+\begin{enumerate}
+    \item Implementing Johnson's elementary cycle algorithm to benchmark optimal cycle enumeration against backtracking DFS.
+    \item Evaluating non-uniform Zipfian contention distributions to model database hotspotting.
+    \item Investigating incremental graph maintenance algorithms where wait edges are dynamically updated upon acquisition rather than reconstructed from full matrices.
+\end{enumerate}
+
+% ==============================================================================
+% 20. CA4–CA5–CA6 CONTINUITY
+% ==============================================================================
+\section{CA4--CA5--CA6 Continuity}
+This research mini-project establishes algorithmic and empirical foundations that feed directly into subsequent continuous assessment modules:
+\begin{itemize}
+    \item \textbf{CA4 (Current):} Algorithmic deadlock detection, complexity modeling, and empirical benchmarking under controlled synthetic resource allocation patterns.
+    \item \textbf{CA5 (Subsequent):} Empirical investigation of Linux kernel process blocking, synchronization primitives (mutexes, semaphores, futexes), and hardware-level resource contention under production OS workloads.
+    \item \textbf{CA6 (Culmination):} Implementation of safe concurrency, resource scheduling, and deadlock avoidance mechanisms within a bare-metal Rust Micro-OS kernel architecture.
+\end{itemize}
+
+% ==============================================================================
+% 21. AI TOOL USAGE DISCLOSURE
+% ==============================================================================
+\section{AI Tool Usage Disclosure}
+In accordance with academic integrity guidelines, the author discloses the use of AI assistance (specifically Google Antigravity / Gemini models) during this project. AI tooling was utilized for:
+\begin{enumerate}
+    \item Assisting with Python benchmarking framework scaffolding and unit test coverage authoring.
+    \item Structuring Matplotlib plotting routines and multivariable regression diagnostic scripts.
+    \item Drafting initial technical summaries and LaTeX formatting templates.
+\end{enumerate}
+All generated code, experimental configurations, statistical calculations, regression diagnostics, and theoretical interpretations were independently audited, executed, validated, and verified by the author against primary literature and empirical output data. AI tools were not used to fabricate experimental results or simulate physical execution timings.
+
+% ==============================================================================
+% 22. REFERENCES
+% ==============================================================================
+\begin{thebibliography}{99}
+
+\bibitem{coffman1971system}
+E.~G. Coffman, M.~J. Elphick, and A.~Shoshani, ``System deadlocks,'' \emph{ACM Computing Surveys (CSUR)}, vol.~3, no.~2, pp.~67--78, 1971.
+
+\bibitem{cormen2022introduction}
+T.~H. Cormen, C.~E. Leiserson, R.~L.~Rivest, and C.~Stein, \emph{Introduction to Algorithms}, 4th~ed.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge, MA, USA: MIT Press, 2022.
+
+\bibitem{dijkstra1965solution}
+E.~W. Dijkstra, ``Solution of a problem in concurrent programming control,'' \emph{Communications of the ACM}, vol.~8, no.~9, p.~569, 1965.
+
+\bibitem{havender1968avoiding}
+J.~W. Havender, ``Avoiding deadlock in multitasking systems,'' \emph{IBM Systems Journal}, vol.~7, no.~2, pp.~74--84, 1968.
+
+\bibitem{holt1972deadlocks}
+R.~C. Holt, ``Some deadlock properties of computer systems,'' \emph{ACM Computing Surveys (CSUR)}, vol.~4, no.~3, pp.~179--196, 1972.
+
+\bibitem{johnson1975finding}
+D.~B. Johnson, ``Finding all the elementary circuits of a directed graph,'' \emph{SIAM Journal on Computing}, vol.~4, no.~1, pp.~77--84, 1975.
+
+\bibitem{knapp1987deadlock}
+E.~Knapp, ``Deadlock detection in distributed databases,'' \emph{ACM Computing Surveys (CSUR)}, vol.~19, no.~4, pp.~303--328, 1987.
+
+\bibitem{silberschatz2018operating}
+A.~Silberschatz, P.~B. Galvin, and G.~Gagne, \emph{Operating System Concepts}, 10th~ed.\hskip 1em plus 0.5em minus 0.4em\relax Hoboken, NJ, USA: John Wiley \& Sons, 2018.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,9 @@
+# Continuous Assessment 2 (CA2) - Experiment 7
+# Performance Investigation of Deadlock Detection and Avoidance Algorithms
+# Python Version Requirement: Python >= 3.10 (Tested on Python 3.14.7)
+
+# The core simulation, algorithms, models, and test suites rely strictly 
+# on the Python Standard Library (typing, dataclasses, time, json, csv, math, random, unittest).
+
+# Required for empirical benchmark plotting and visualization generation:
+matplotlib>=3.8.0

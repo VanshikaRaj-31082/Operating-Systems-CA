@@ -1,0 +1,4 @@
+# Operating Systems CA1: Four-Resource Deadlock
+# Python Standard Library only — No external pip dependencies required.
+# Minimum required version: Python 3.10+
+

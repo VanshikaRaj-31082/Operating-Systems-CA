@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "timestamp_utc": "2026-11-15T10:39:11.975766+00:00",
+    "description": "Operational overhead comparison of Strategy A vs Strategy B"
+  },
+  "simulations": [
+    {
+      "n": 5,
+      "m": 3,
+      "request_stream_length": 100,
+      "detection_sweep_interval": 10,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 100,
+        "cumulative_time_us": 2481.6994555294514,
+        "mean_time_per_check_us": 24.816994555294514
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 10,
+        "cumulative_time_us": 372.4999260157347,
+        "mean_time_per_check_us": 37.24999260157347
+      },
+      "cumulative_overhead_ratio_A_vs_B": 6.662281740760997
+    },
+    {
+      "n": 10,
+      "m": 5,
+      "request_stream_length": 100,
+      "detection_sweep_interval": 10,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 100,
+        "cumulative_time_us": 5069.600883871317,
+        "mean_time_per_check_us": 50.69600883871317
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 10,
+        "cumulative_time_us": 565.2999971061945,
+        "mean_time_per_check_us": 56.52999971061945
+      },
+      "cumulative_overhead_ratio_A_vs_B": 8.967983212140307
+    },
+    {
+      "n": 20,
+      "m": 5,
+      "request_stream_length": 100,
+      "detection_sweep_interval": 10,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 100,
+        "cumulative_time_us": 10195.401264354587,
+        "mean_time_per_check_us": 101.95401264354587
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 10,
+        "cumulative_time_us": 1201.6999535262585,
+        "mean_time_per_check_us": 120.16999535262585
+      },
+      "cumulative_overhead_ratio_A_vs_B": 8.484148838016749
+    },
+    {
+      "n": 50,
+      "m": 10,
+      "request_stream_length": 100,
+      "detection_sweep_interval": 10,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 100,
+        "cumulative_time_us": 30724.100535735488,
+        "mean_time_per_check_us": 307.2410053573549
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 10,
+        "cumulative_time_us": 3622.700460255146,
+        "mean_time_per_check_us": 362.2700460255146
+      },
+      "cumulative_overhead_ratio_A_vs_B": 8.48099390849764
+    },
+    {
+      "n": 10,
+      "m": 5,
+      "request_stream_length": 200,
+      "detection_sweep_interval": 5,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 200,
+        "cumulative_time_us": 8197.49990478158,
+        "mean_time_per_check_us": 40.9874995239079
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 40,
+        "cumulative_time_us": 2117.800060659647,
+        "mean_time_per_check_us": 52.945001516491175
+      },
+      "cumulative_overhead_ratio_A_vs_B": 3.870761955794941
+    },
+    {
+      "n": 10,
+      "m": 5,
+      "request_stream_length": 200,
+      "detection_sweep_interval": 20,
+      "strategy_a": {
+        "name": "Banker's Avoidance (Per-Request Check)",
+        "checks_executed": 200,
+        "cumulative_time_us": 8378.501050174236,
+        "mean_time_per_check_us": 41.89250525087118
+      },
+      "strategy_b": {
+        "name": "Periodic Detection (Sweep Every K Requests)",
+        "checks_executed": 10,
+        "cumulative_time_us": 616.3998041301966,
+        "mean_time_per_check_us": 61.63998041301966
+      },
+      "cumulative_overhead_ratio_A_vs_B": 13.592640675798334
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "metadata": {
+    "record_count": 4,
+    "generated_at_utc": "2026-11-15T14:21:18Z"
+  },
+  "records": [
+    {
+      "trial_id": "wait_for_graph_circular_n4_m4_s42",
+      "algorithm": "wait_for_graph",
+      "resource_model": "single_instance",
+      "pattern": "circular",
+      "n": 4,
+      "m": 4,
+      "seed": 42,
+      "warmup_runs": 2,
+      "repetitions": 5,
+      "raw_timings_us": [
+        38.09994086623192,
+        26.59996971487999,
+        25.700079277157784,
+        25.900080800056458,
+        25.50007775425911
+      ],
+      "mean_us": 28.36002968251705,
+      "median_us": 25.900080800056458,
+      "min_us": 25.50007775425911,
+      "max_us": 38.09994086623192,
+      "stddev_us": 5.460533184854041,
+      "is_deadlocked": true,
+      "deadlocked_count": 3,
+      "deadlocked_processes": [
+        0,
+        1,
+        2
+      ],
+      "environment": {
+        "python_version": "3.14.7",
+        "python_implementation": "CPython",
+        "os_name": "Windows",
+        "os_release": "11",
+        "os_version": "10.0.26300",
+        "machine": "AMD64",
+        "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "cpu_count": 16,
+        "timestamp_utc": "2026-11-15T14:21:18.550992+00:00"
+      }
+    },
+    {
+      "trial_id": "wait_for_graph_acyclic_n4_m4_s42",
+      "algorithm": "wait_for_graph",
+      "resource_model": "single_instance",
+      "pattern": "acyclic",
+      "n": 4,
+      "m": 4,
+      "seed": 42,
+      "warmup_runs": 2,
+      "repetitions": 5,
+      "raw_timings_us": [
+        24.10006709396839,
+        30.099879950284958,
+        23.899832740426064,
+        25.900080800056458,
+        23.499829694628716
+      ],
+      "mean_us": 25.499938055872917,
+      "median_us": 24.10006709396839,
+      "min_us": 23.499829694628716,
+      "max_us": 30.099879950284958,
+      "stddev_us": 2.7312995457709097,
+      "is_deadlocked": false,
+      "deadlocked_count": 0,
+      "deadlocked_processes": [],
+      "environment": {
+        "python_version": "3.14.7",
+        "python_implementation": "CPython",
+        "os_name": "Windows",
+        "os_release": "11",
+        "os_version": "10.0.26300",
+        "machine": "AMD64",
+        "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "cpu_count": 16,
+        "timestamp_utc": "2026-11-15T14:21:18.550992+00:00"
+      }
+    },
+    {
+      "trial_id": "multi_instance_circular_n5_m4_s42",
+      "algorithm": "multi_instance",
+      "resource_model": "multi_instance",
+      "pattern": "circular",
+      "n": 5,
+      "m": 4,
+      "seed": 42,
+      "warmup_runs": 2,
+      "repetitions": 5,
+      "raw_timings_us": [
+        25.300076231360435,
+        23.29982817173004,
+        23.200176656246185,
+        22.999942302703857,
+        23.399945348501205
+      ],
+      "mean_us": 23.639993742108345,
+      "median_us": 23.29982817173004,
+      "min_us": 22.999942302703857,
+      "max_us": 25.300076231360435,
+      "stddev_us": 0.939722649477709,
+      "is_deadlocked": true,
+      "deadlocked_count": 3,
+      "deadlocked_processes": [
+        0,
+        1,
+        2
+      ],
+      "environment": {
+        "python_version": "3.14.7",
+        "python_implementation": "CPython",
+        "os_name": "Windows",
+        "os_release": "11",
+        "os_version": "10.0.26300",
+        "machine": "AMD64",
+        "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "cpu_count": 16,
+        "timestamp_utc": "2026-11-15T14:21:18.550992+00:00"
+      }
+    },
+    {
+      "trial_id": "multi_instance_mixed_n5_m5_s42",
+      "algorithm": "multi_instance",
+      "resource_model": "multi_instance",
+      "pattern": "mixed",
+      "n": 5,
+      "m": 5,
+      "seed": 42,
+      "warmup_runs": 2,
+      "repetitions": 5,
+      "raw_timings_us": [
+        29.299873858690262,
+        29.10010516643524,
+        27.899863198399544,
+        28.899870812892914,
+        28.299866244196892
+      ],
+      "mean_us": 28.69991585612297,
+      "median_us": 28.899870812892914,
+      "min_us": 27.899863198399544,
+      "max_us": 29.299873858690262,
+      "stddev_us": 0.5831395675141029,
+      "is_deadlocked": true,
+      "deadlocked_count": 3,
+      "deadlocked_processes": [
+        0,
+        1,
+        2
+      ],
+      "environment": {
+        "python_version": "3.14.7",
+        "python_implementation": "CPython",
+        "os_name": "Windows",
+        "os_release": "11",
+        "os_version": "10.0.26300",
+        "machine": "AMD64",
+        "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "cpu_count": 16,
+        "timestamp_utc": "2026-11-15T14:21:18.550992+00:00"
+      }
+    }
+  ]
+}

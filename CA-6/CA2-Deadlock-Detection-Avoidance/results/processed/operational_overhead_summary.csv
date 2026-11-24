@@ -1,0 +1,7 @@
+n,m,request_stream_length,detection_sweep_interval,strategy_a_checks,strategy_a_time_us,strategy_a_mean_per_check_us,strategy_b_checks,strategy_b_time_us,strategy_b_mean_per_check_us,overhead_ratio_A_vs_B
+5,3,100,10,100,2481.7,24.82,10,372.5,37.25,6.66
+10,5,100,10,100,5069.6,50.7,10,565.3,56.53,8.97
+20,5,100,10,100,10195.4,101.95,10,1201.7,120.17,8.48
+50,10,100,10,100,30724.1,307.24,10,3622.7,362.27,8.48
+10,5,200,5,200,8197.5,40.99,40,2117.8,52.95,3.87
+10,5,200,20,200,8378.5,41.89,10,616.4,61.64,13.59

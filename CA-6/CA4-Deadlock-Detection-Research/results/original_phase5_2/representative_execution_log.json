@@ -1,0 +1,22 @@
+{
+  "started_at_utc": "2026-11-15T14:28:54Z",
+  "ended_at_utc": "2026-11-15T14:28:54Z",
+  "total_configurations_planned": 8,
+  "completed_configurations": 8,
+  "unsupported_configurations": 0,
+  "failed_configurations": 0,
+  "total_detector_executions": 240,
+  "environment": {
+    "python_version": "3.14.7",
+    "python_implementation": "CPython",
+    "os_name": "Windows",
+    "os_release": "11",
+    "os_version": "10.0.26300",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_count": 16,
+    "timestamp_utc": "2026-11-15T14:28:54.538248+00:00"
+  },
+  "unsupported_details": [],
+  "failure_details": []
+}

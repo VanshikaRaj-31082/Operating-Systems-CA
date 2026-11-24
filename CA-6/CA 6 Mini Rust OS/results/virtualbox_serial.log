@@ -1,0 +1,97 @@
+================================================================
+        CA-6 MINI RUST OS -- BARE-METAL x86_64 KERNEL           
+================================================================
+OS Name   : CA-6 Mini Rust OS
+Version   : 0.2.0
+Arch      : x86_64 (Long Mode)
+Bootloader: Multiboot 1 (GRUB) -> 64-bit Long Mode Transition
+Status    : Bare-Metal Kernel Initialized Successfully
+
+[SYNC] Testing SpinLock mutual exclusion primitive...
+[SYNC] SpinLock test PASSED (RAII lock/unlock verified).
+[MEMORY] Running Kernel Heap Allocator self-test...
+[MEMORY] Allocated Block A (128 B) at 0x10b5c0
+[MEMORY] Allocated Block B (256 B) at 0x10b660
+[MEMORY] Deallocated Block A successfully.
+[MEMORY] Allocated Block C (64 B) at 0x10b5c0 (Reused space)
+[MEMORY] Allocator Test PASSED! Heap Stats: 0 B allocated, 65504 B free, 3 total operations
+[TIMER] Initializing 8254 Programmable Interval Timer (PIT)...
+[TIMER] PIT hardware Channel 0 set to 100 Hz (divisor: 11931).
+[TIMER] Hardware TSC reading verified: diff = 916884 cycles.
+[TIMER] Note: Hardware PIT calibrated. Task scheduling demo uses cooperative quantum simulation.
+[SCHED] Registering demonstration tasks in Ready Queue:
+  + Task 1: 'Telemetry Sensor' (4 iterations, Priority 1)
+  + Task 2: 'Memory Integrity' (3 iterations, Priority 2)
+  + Task 3: 'Crypto Hash Engine' (5 iterations, Priority 1)
+  + Task 4: 'Disk Flush Daemon' (2 iterations, Priority 3)
+
+========================================================
+  STARTING ROUND ROBIN SCHEDULER EXECUTION (Quantum: 2)
+========================================================
+--- Scheduler Cycle #1 ---
+[SCHED] [SWITCH #1] -> Dispatching Task 1 ('Telemetry Sensor') [State: READY -> RUNNING]
+  [Task 1 - Telemetry] Reading temperature sensor: 45 C
+  [Task 1 - Telemetry] Reading temperature sensor: 48 C
+[SCHED] Task 1 ('Telemetry Sensor') quantum expired (ran 2 ticks, progress 2/4). [State: RUNNING -> READY]
+[SCHED] [SWITCH #2] -> Dispatching Task 2 ('Memory Integrity') [State: READY -> RUNNING]
+  [Task 2 - MemCheck] Verifying kernel heap page frame #1: OK
+  [Task 2 - MemCheck] Verifying kernel heap page frame #2: OK
+[SCHED] Task 2 ('Memory Integrity') quantum expired (ran 2 ticks, progress 2/3). [State: RUNNING -> READY]
+[SCHED] [SWITCH #3] -> Dispatching Task 3 ('Crypto Hash Engine') [State: READY -> RUNNING]
+  [Task 3 - CryptoHash] Computed block hash for chunk #1: 0x45454545
+  [Task 3 - CryptoHash] Computed block hash for chunk #2: 0x64646464
+[SCHED] Task 3 ('Crypto Hash Engine') quantum expired (ran 2 ticks, progress 2/5). [State: RUNNING -> READY]
+[SCHED] [SWITCH #4] -> Dispatching Task 4 ('Disk Flush Daemon') [State: READY -> RUNNING]
+  [Task 4 - DiskDaemon] Background journal flush step #1: SYNCED
+  [Task 4 - DiskDaemon] Background journal flush step #2: SYNCED
+[SCHED] Task 4 ('Disk Flush Daemon') completed all 2/2 iterations. [State: TERMINATED]
+--- Scheduler Cycle #2 ---
+[SCHED] [SWITCH #5] -> Dispatching Task 1 ('Telemetry Sensor') [State: READY -> RUNNING]
+  [Task 1 - Telemetry] Reading temperature sensor: 51 C
+  [Task 1 - Telemetry] Reading temperature sensor: 54 C
+[SCHED] Task 1 ('Telemetry Sensor') completed all 4/4 iterations. [State: TERMINATED]
+[SCHED] [SWITCH #6] -> Dispatching Task 2 ('Memory Integrity') [State: READY -> RUNNING]
+  [Task 2 - MemCheck] Verifying kernel heap page frame #3: OK
+[SCHED] Task 2 ('Memory Integrity') completed all 3/3 iterations. [State: TERMINATED]
+[SCHED] [SWITCH #7] -> Dispatching Task 3 ('Crypto Hash Engine') [State: READY -> RUNNING]
+  [Task 3 - CryptoHash] Computed block hash for chunk #3: 0x07070707
+  [Task 3 - CryptoHash] Computed block hash for chunk #4: 0x26262626
+[SCHED] Task 3 ('Crypto Hash Engine') quantum expired (ran 2 ticks, progress 4/5). [State: RUNNING -> READY]
+[SCHED] [SWITCH #8] -> Dispatching Task 3 ('Crypto Hash Engine') [State: READY -> RUNNING]
+  [Task 3 - CryptoHash] Computed block hash for chunk #5: 0xc1c1c1c1
+[SCHED] Task 3 ('Crypto Hash Engine') completed all 5/5 iterations. [State: TERMINATED]
+========================================================
+  SCHEDULER FINISHED: Total Switches: 8, Total Ticks: 14
+========================================================
+
+
+--- PCI Network Controller Probe (Bus 0..7) ---
+[NET] NIC #0 Detected : Intel PRO/1000 MT (82540EM) (8086:100e) at 00:03.0
+[NET] PCI Class      : 0x02/0x00 (prog-if 0x00), IRQ: 9
+[NET] BAR0 MMIO      : 0xf0000000 (Memory-Mapped I/O)
+[NET] Link/Stack     : PCI Device Present (MAC/PHY/IP driver not loaded)
+
+================================================================
+      PHASE 3 & 4: INTEL 82540EM DRIVER & NETWORK STACK        
+================================================================
+[E1000] Enabling PCI Bus Mastering & Memory Space...
+[E1000] MMIO base address: 0xf0000000
+[E1000] Driver Status : INITIALIZED (MMIO: 0xf0000000)
+[E1000] Hardware MAC  : 08:00:27:38:ad:8d
+[E1000] Physical Link : NOT DETECTED (Check Cable Connected in VM)
+
+[DHCP] Transmitting DHCP Discover via Broadcast UDP:67...
+[DHCP] Failed to transmit DHCP Discover packet via e1000 TX ring.
+
+[NET] Total Packets Transmitted: 0, Received: 0
+================================================================
+
+[KBD] Initializing 8042 PS/2 Keyboard Controller...
+[KBD] Initializing 8042 PS/2 Keyboard Controller...
+[KBD] Status: INITIALIZED (Config: 0x75->0x64, Port 1 ON, Scan ACK: 0xfa)
+[KBD] Status: INITIALIZED (Config: 0x75->0x64, Port 1 ON, Scan ACK: 0xfa)
+
+================================================================
+          CA-6 MINI RUST OS -- INTERACTIVE CONSOLE             
+  Type 'help' for commands. Type 'kbd' for keyboard diagnostics.
+================================================================

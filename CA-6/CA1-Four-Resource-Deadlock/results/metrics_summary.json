@@ -1,0 +1,21 @@
+{
+  "scenario": "D1 - Four-Resource Deadlock",
+  "timestamp": "2026-11-12 12:21:16",
+  "naive": {
+    "total_tasks": 4,
+    "completed_tasks": 0,
+    "deadlocked_tasks": 4,
+    "cycles_detected": 1,
+    "deadlock_cycle": "(P1) -> [R2] -> (P2) -> [R3] -> (P3) -> [R4] -> (P4) -> [R1] -> (P1)",
+    "elapsed_seconds": 0.4026753902435303
+  },
+  "prevented": {
+    "total_tasks": 4,
+    "completed_tasks": 4,
+    "deadlocked_tasks": 0,
+    "cycles_detected": 0,
+    "deadlock_cycle": "None (Acyclic DAG)",
+    "elapsed_seconds": 0.10427975654602051,
+    "starvation_guaranteed_free": false
+  }
+}

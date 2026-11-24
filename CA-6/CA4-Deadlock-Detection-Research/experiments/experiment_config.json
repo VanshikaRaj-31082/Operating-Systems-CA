@@ -1,0 +1,22 @@
+{
+  "process_counts": [5, 10, 20, 50, 100],
+  "resource_counts": [3, 5, 10, 20],
+  "patterns": [
+    "acyclic",
+    "circular",
+    "random",
+    "mixed"
+  ],
+  "resource_models": [
+    "single_instance",
+    "multi_instance"
+  ],
+  "algorithms": [
+    "wait_for_graph",
+    "multi_instance"
+  ],
+  "warmup_runs": 5,
+  "repetitions": 30,
+  "seeds": [101, 202, 303, 404, 505],
+  "notes": "WFG evaluated on single_instance; Multi-Instance detector evaluated on multi_instance. Multi-instance capacity default is 5 units per type."
+}
